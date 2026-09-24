@@ -1,0 +1,58 @@
+name: Metrics monitor
+# The maintain loop. A deterministic detector checks each metric in monitoring/bands.yaml;
+# at 2σ+ Claude diagnoses (read-only) and the finding comes back as an intent.md PR.
+# Claude acts only through PRs (review gate) or runbooks pre-approved in bands.yaml.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write   # to trigger pre-approved runbook workflows
+
+concurrency:
+  group: metrics-monitor
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  monitor:
+    if: vars.SDLC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+
+      - name: Detect (deterministic)
+        id: detect
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROMETHEUS_URL: ${{ vars.PROMETHEUS_URL }}
+          PROMETHEUS_TOKEN: ${{ secrets.PROMETHEUS_TOKEN }}
+        run: python3 monitoring/detect.py --out findings.json > /dev/null
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: findings
+          path: findings.json
+
+      - name: Respond (Claude, gated)
+        if: steps.detect.outputs.actionable == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          gh label create maintain-loop --color BFD4F2 --description "Opened by the maintain loop" --force
+          bash monitoring/respond.sh findings.json

@@ -1,0 +1,18 @@
+{
+  "id": "0001-example-task",
+  "enabled": false,
+  "source": "task",
+  "owner": "@your-org/platform-team",
+  "description": "TEMPLATE: a real task from recent work with a known, accepted outcome. Replace everything and set enabled to true.",
+  "base_ref": "HEAD",
+  "prompt": "Add a `status` field to the GET /claims/{id} response, following the existing response conventions, with tests.",
+  "allowed_tools": "Read,Edit,Write,Grep,Glob,Bash(make test),Bash(make lint)",
+  "max_turns": 30,
+  "checks": [
+    { "name": "tests pass", "run": "make test" },
+    { "name": "lint clean", "run": "make lint" },
+    { "name": "existing tests untouched", "run": "! git diff --name-only --diff-filter=MD HEAD | grep -E '(^|/)(tests?|__tests__)/'" },
+    { "name": "field present in handler", "run": "grep -rq 'status' src/" },
+    { "name": "agent finished without error", "result_field": "is_error", "equals": false }
+  ]
+}

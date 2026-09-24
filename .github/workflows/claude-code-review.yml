@@ -1,0 +1,49 @@
+name: Claude code review
+# Every PR gets the same review passes defined in REVIEW.md, with findings ranked by severity.
+# Findings inform; they never approve. Merging still requires a code owner (branch protection).
+# Alternative: enable the managed Code Review service instead of this workflow.
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+    paths-ignore:
+      - "src/gen/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    if: vars.SDLC_ENABLED == 'true' && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Review this pull request strictly according to REVIEW.md at the repository root.
+            - Read CLAUDE.md first.
+            - Find the change's folder under intent/ (linked in the PR description or touched by the diff)
+              and check the diff against its spec.md and plan.md.
+            - Apply the skills in .claude/skills/ that match the change.
+            - Post each finding as an inline comment tagged with its pass and severity (Important / Nit).
+            - Finish with one summary comment whose last line is exactly:
+              <!-- review-tally: {"important": N, "nit": M} -->
+            - Also say if the change makes CLAUDE.md outdated.
+            Do not approve, request changes, or push commits.
+          claude_args: >-
+            --max-turns 40
+            --allowedTools "Read,Grep,Glob,mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*)"

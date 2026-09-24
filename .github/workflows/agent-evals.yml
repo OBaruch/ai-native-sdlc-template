@@ -1,0 +1,46 @@
+name: Agent evals
+# Regression suite for the agent's configuration. Runs when anything that steers the agent
+# changes (CLAUDE.md, skills, hooks, subagents, commands, evals) and nightly.
+# Make this a required status check so a pass-rate drop blocks the merge.
+
+on:
+  pull_request:
+    paths:
+      - "CLAUDE.md"
+      - ".claude/**"
+      - "evals/**"
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  evals:
+    if: vars.SDLC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install -g @anthropic-ai/claude-code
+      - name: Run eval suite
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EVAL_PASS_THRESHOLD: ${{ vars.EVAL_PASS_THRESHOLD || '0.9' }}
+        run: make evals
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results
+          path: evals/.runs/
+          if-no-files-found: ignore

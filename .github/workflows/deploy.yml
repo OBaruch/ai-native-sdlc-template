@@ -1,0 +1,64 @@
+name: Deploy
+# Autonomy is tiered by environment (governance/environments.md):
+#   dev        - deploys automatically on every merge to main
+#   staging    - on demand; agent-triggered runs allowed
+#   production - needs a release ticket AND a required reviewer on the "production"
+#                GitHub environment (Settings > Environments). The agent can prepare a
+#                release but cannot pass this gate.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      action:
+        description: deploy or rollback
+        type: choice
+        options: [deploy, rollback]
+        default: deploy
+      environment:
+        type: choice
+        options: [dev, staging, production]
+        default: staging
+      version:
+        description: "Version/ref to deploy or restore (empty = current / previous)"
+        required: false
+      release_ticket:
+        description: "Change/release ticket (required for production), e.g. CHG-1234"
+        required: false
+
+permissions:
+  contents: read
+  id-token: write   # for short-lived cloud credentials via OIDC
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    if: vars.SDLC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    concurrency:
+      group: deploy-${{ inputs.environment || 'dev' }}
+      cancel-in-progress: false
+    env:
+      TARGET_ENV: ${{ inputs.environment || 'dev' }}
+      ACTION: ${{ inputs.action || 'deploy' }}
+      VERSION: ${{ inputs.version || github.sha }}
+      RELEASE_APPROVAL: ${{ inputs.release_ticket }}
+    steps:
+      - uses: actions/checkout@v4
+      # - uses: aws-actions/configure-aws-credentials@v4 / azure/login / google-github-actions/auth
+      #   with OIDC: short-lived, environment-scoped credentials. No long-lived secrets.
+      - name: Deploy or roll back
+        run: |
+          if [[ "$ACTION" == "rollback" ]]; then
+            scripts/rollback.sh "$TARGET_ENV" "${{ inputs.version }}"
+          else
+            scripts/deploy.sh "$TARGET_ENV" "$VERSION"
+          fi
+      - name: Record
+        run: |
+          echo "$ACTION of $VERSION to $TARGET_ENV by ${{ github.actor }} (ticket: ${RELEASE_APPROVAL:-n/a})" >> "$GITHUB_STEP_SUMMARY"

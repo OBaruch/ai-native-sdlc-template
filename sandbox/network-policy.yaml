@@ -1,0 +1,33 @@
+# Egress policy for agent job pods (Kubernetes).
+# Standard NetworkPolicy works on IPs, not domain names: route all egress through an
+# allowlisting egress proxy (or use an FQDN-aware CNI such as Cilium) and allow only these
+# destinations:
+#   - the model endpoint: api.anthropic.com, or your Bedrock / Vertex AI / Foundry endpoint
+#   - your git host and package/artifact registry
+#   - the MCP servers for the target environment (never production credentials by default)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: agent-jobs-egress
+  namespace: <agent-jobs>
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: claude-agent
+  policyTypes: [Ingress, Egress]
+  ingress: []                       # nothing talks to the agent
+  egress:
+    - to:                           # DNS
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+    - to:                           # the allowlisting egress proxy only
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: <egress-proxy-namespace>
+      ports:
+        - { protocol: TCP, port: 3128 }

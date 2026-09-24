@@ -1,0 +1,71 @@
+name: Intent to spec
+# Accepting an intent (merging its PR into main) triggers the requirements + design pass.
+# Claude writes spec.md with the organization's skills loaded and opens it as a PR,
+# so the product owner's first involvement is the review.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "intent/*/intent.md"
+  workflow_dispatch:
+    inputs:
+      change:
+        description: "Change folder, e.g. intent/0007-claims-status"
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  spec:
+    if: vars.SDLC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Find accepted intents without a spec
+        id: find
+        run: |
+          if [[ -n "${{ inputs.change }}" ]]; then
+            dirs="${{ inputs.change }}"
+          else
+            dirs="$(git diff --name-only HEAD~1 HEAD -- 'intent/*/intent.md' | xargs -r -n1 dirname | grep -v '0000-template' || true)"
+          fi
+          todo=""
+          for d in $dirs; do [[ -f "$d/spec.md" ]] || todo="$todo $d"; done
+          echo "dirs=${todo# }" >> "$GITHUB_OUTPUT"
+          echo "Intents needing a spec: ${todo:-none}"
+
+      - name: Write specs
+        if: steps.find.outputs.dirs != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          git config user.name "intent-to-spec[bot]"
+          git config user.email "intent-to-spec@users.noreply.github.com"
+          for d in ${{ steps.find.outputs.dirs }}; do
+            slug="$(basename "$d")"
+            git checkout -q -B "spec/$slug" origin/main
+            # Merging the intent PR is the product owner's acceptance.
+            sed -i -E 's/^status: *draft/status: accepted/' "$d/intent.md"
+            claude -p "Follow the instructions in .claude/commands/write-spec.md, with \$ARGUMENTS = $d. \
+          Record 'generated_by: intent-to-spec workflow run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}' in the frontmatter." \
+              --allowedTools "Read,Grep,Glob,Write,Edit,Skill" --max-turns 40
+            git add "$d"
+            git commit -q -m "spec: $slug (generated from accepted intent)"
+            git push -q -f origin "spec/$slug"
+            gh pr create --base main --head "spec/$slug" \
+              --title "spec: $slug" \
+              --body "Generated from \`$d/intent.md\` with the organization's skills. **Product owner:** review against the intent and resolve every *Area of concern* with its policy owner before approving." \
+              || echo "PR for spec/$slug already exists"
+          done

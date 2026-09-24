@@ -1,0 +1,35 @@
+name: Rollback drill
+# Rollback must be the most rehearsed path in the pipeline: the maintain loop relies on it.
+# Weekly, in staging: roll back, check health, roll forward again.
+
+on:
+  schedule:
+    - cron: "0 9 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  drill:
+    if: vars.SDLC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Roll back staging
+        run: scripts/rollback.sh staging
+      - name: Health check after rollback
+        run: scripts/deploy.sh staging --health-only
+      - name: Roll forward
+        run: scripts/deploy.sh staging "${{ github.sha }}"
+      - name: Record
+        run: echo "Rollback drill passed on $(date -u +%F)" >> "$GITHUB_STEP_SUMMARY"

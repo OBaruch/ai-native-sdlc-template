@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "deploy": {
+      "command": "<path-or-package-of-your-deploy-mcp-server>",
+      "args": ["--environment", "${DEPLOY_ENV:-dev}"],
+      "env": {
+        "DEPLOY_TOKEN": "${DEPLOY_TOKEN}"
+      }
+    },
+    "browser": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      }
+    }
+  }
+}

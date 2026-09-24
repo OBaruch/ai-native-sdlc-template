@@ -1,0 +1,32 @@
+# Secrets — never commit (also denied to Claude in .claude/settings.json)
+.env
+.env.*
+!.env.example
+secrets/
+
+# Claude Code: personal settings, worktrees and session markers
+.claude/settings.local.json
+.claude/worktrees/
+.claude/fix-task
+.claude/active-change
+.claude/logs/
+CLAUDE.local.md
+
+# CI / eval / monitoring by-products
+result.json
+triage.md
+findings.json
+evals/.runs/
+out/
+
+# Local copies of the course pages (third-party content — keep out of the repo)
+doc/sdlc_guide/*.txt
+doc/sdlc_guide/html/
+
+# Tooling
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+.DS_Store
+Thumbs.db

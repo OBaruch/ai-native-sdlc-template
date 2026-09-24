@@ -1,0 +1,54 @@
+name: CI
+# Lint, test and build with the same single-command targets Claude uses locally.
+# On failure, Claude triages the log read-only and posts a short summary (judgment step).
+# Enable with the repository variable SDLC_ENABLED=true once the Makefile is configured.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  verify:
+    if: vars.SDLC_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # - uses: actions/setup-node@v4 / setup-python / setup-java ... for your stack
+      - run: mkdir -p out
+      - name: Lint
+        run: make lint 2>&1 | tee -a out/build.log
+      - name: Test
+        run: make test 2>&1 | tee -a out/build.log
+      - name: Build
+        run: make build 2>&1 | tee -a out/build.log
+
+      - name: Triage failed build (read-only)
+        if: failure() && env.ANTHROPIC_API_KEY != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          claude -p "The CI log is in out/build.log. Find the most likely cause of the failure, \
+          say whether it looks flaky or like a real regression, and point to the file and line if you can. \
+          Answer in at most five lines of Markdown." \
+            --allowedTools "Read,Grep,Glob" --max-turns 15 > triage.md
+          { echo "### Build triage (Claude)"; cat triage.md; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post triage on the PR
+        if: failure() && github.event_name == 'pull_request' && hashFiles('triage.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment ${{ github.event.pull_request.number }} --body-file triage.md

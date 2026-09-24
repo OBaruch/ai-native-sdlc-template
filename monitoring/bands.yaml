@@ -1,0 +1,61 @@
+# Control bands and response tiers for the maintain loop.
+#
+# Detection is deterministic (monitoring/detect.py, unit-tested, no model involved).
+# Claude is invoked only at 2σ and above, and at 3σ may act only by opening a pull request
+# (which goes through the normal review gate) or by triggering a runbook listed below.
+# Dismissed findings are a signal to tune these bands.
+version: 1
+
+defaults:
+  baseline_points: 30        # rolling baseline: points before the evaluated tail
+  min_baseline_points: 10    # fewer than this -> insufficient_data, no action
+  eval_points: 8             # most recent points evaluated with the rules
+  rules: western_electric    # R1 1pt >3σ · R2 2/3 >2σ · R3 4/5 >1σ · R4 8 in a row on one side
+
+# Pre-approved runbooks the loop may trigger. Anything not listed here cannot be run.
+runbooks:
+  rollback-deploy:
+    doc: monitoring/runbooks/rollback-deploy.md
+    workflow: deploy.yml
+    inputs: { action: rollback, environment: production }   # still waits for the environment's required reviewers
+  quarantine-flaky-test:
+    doc: monitoring/runbooks/quarantine-flaky-test.md
+    workflow: null                                          # delivered as a pull request
+
+metrics:
+  - name: ci_test_failure_rate
+    description: Share of completed CI runs on the default branch that failed, per day.
+    owner: "@your-org/platform-team"
+    direction: up                    # up | down | both — which side is bad
+    source:
+      command: python3 monitoring/sources/ci_failure_rate.py --days 45 --workflow CI
+    tiers:
+      1sigma: { action: log }
+      2sigma: { action: diagnose, allowed_tools: "Read,Grep,Glob,Bash(gh run list:*),Bash(gh run view:*)" }
+      3sigma: { action: propose, allowed_tools: "Read,Grep,Glob,Edit,Bash(gh run view:*),Bash(make test)",
+                routes: [pull_request, "runbook:quarantine-flaky-test"] }
+
+  - name: post_deploy_5xx_rate
+    description: Ratio of 5xx responses to all responses, hourly. TEMPLATE — point it at your metrics store.
+    owner: "@your-org/service-owners"
+    direction: up
+    source:
+      command: >-
+        python3 monitoring/sources/prometheus_query.py --hours 72 --step 1h
+        --query 'sum(rate(http_requests_total{code=~"5.."}[1h])) / sum(rate(http_requests_total[1h]))'
+    tiers:
+      1sigma: { action: log }
+      2sigma: { action: diagnose, allowed_tools: "Read,Grep,Glob" }
+      3sigma: { action: propose, allowed_tools: "Read,Grep,Glob",
+                routes: ["runbook:rollback-deploy"] }
+
+  - name: pr_cycle_time_hours
+    description: Median hours from PR open to merge, per day. A process metric.
+    owner: "@your-org/engineering-leads"
+    direction: up
+    source:
+      command: python3 monitoring/sources/pr_cycle_time.py --days 60
+    tiers:
+      1sigma: { action: log }
+      2sigma: { action: log }
+      3sigma: { action: report, allowed_tools: "Read,Grep,Glob,Bash(gh pr list:*),Bash(gh pr view:*)" }

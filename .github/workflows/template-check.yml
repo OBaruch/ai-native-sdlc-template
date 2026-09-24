@@ -1,0 +1,33 @@
+name: Template check
+# Validates the SDLC scaffold itself (always on): JSON/YAML parse, shell syntax,
+# skill/agent/command frontmatter, hook wiring, runbook references, detector unit tests.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Validate scaffold
+        run: make validate-template
+      - name: Hook behavior tests
+        run: make hook-test
+      - name: Detector unit tests
+        run: make monitor-test
+      - name: Shellcheck (errors only)
+        run: git ls-files '*.sh' | xargs shellcheck -S error -x

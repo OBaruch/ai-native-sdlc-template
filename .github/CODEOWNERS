@@ -1,0 +1,29 @@
+# Code owners approve merges through branch protection ("Require review from Code Owners").
+# Replace the placeholder teams. Later rules override earlier ones.
+
+*                           @your-org/engineering
+
+# Agent configuration steers every session: reviewed like code, by its owners.
+/CLAUDE.md                  @your-org/tech-leads
+/REVIEW.md                  @your-org/tech-leads
+/.claude/                   @your-org/platform-team
+/.claude/hooks/             @your-org/platform-team @your-org/security
+/managed-settings/          @your-org/platform-team @your-org/security
+
+# Policy skills: the policy owner signs off on every change.
+/.claude/skills/security-policy/     @your-org/security
+/.claude/skills/secure-api-review/   @your-org/security
+/.claude/skills/compliance-policy/   @your-org/compliance
+/.claude/skills/brand-guidelines/    @your-org/brand
+/.claude/skills/ux-standards/        @your-org/ux
+
+# Artifact chain: the product owner accepts intents and specs.
+/intent/                    @your-org/product-owners
+
+# Delivery and operations.
+/.github/workflows/         @your-org/platform-team
+/scripts/                   @your-org/platform-team
+/sandbox/                   @your-org/platform-team @your-org/security
+/monitoring/                @your-org/sre
+/evals/                     @your-org/platform-team
+/governance/                @your-org/engineering-leadership

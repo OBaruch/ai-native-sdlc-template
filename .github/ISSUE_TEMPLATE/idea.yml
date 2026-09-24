@@ -1,0 +1,31 @@
+name: Idea / request
+description: Capture an idea. It becomes an intent.md (tag @claude to have it drafted for you).
+title: "Idea: "
+labels: [idea]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe it in your own words; no formal language needed.
+        Add a comment "@claude turn this into an intent.md" to get a draft PR in `intent/`.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What can't someone do today?
+      description: Who is affected and what does it cost them?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What would better look like?
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and out of scope
+  - type: input
+    id: record
+    attributes:
+      label: Related ticket / record id (optional)
