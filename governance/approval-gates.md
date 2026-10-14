@@ -10,10 +10,10 @@ Owner: `<head of engineering>` · Last reviewed: `<YYYY-MM-DD>`
 |------|------|--------------|-------------------------|-------------|----------------|
 | G0 Intent acceptance | intent.md enters Design | Product owner | Merge of the intent PR | CODEOWNERS on `intent/` | Git history |
 | G1 Spec approval | spec.md enters Build | Product owner (+ tech lead if risk high) | PR approval; all *Areas of concern* resolved | CODEOWNERS, PR template | PR history |
-| G2 Protected changes | Edits to migrations, infra, guardrails | Change management | Approved change ticket in `CHANGE_TICKET` | `.claude/hooks/protected-paths.sh` | Hook log + OTel |
-| G3 Production release | Deploy/rollback to production | Named release manager | Release ticket in `RELEASE_APPROVAL` **and** reviewer on the `production` environment | `.claude/hooks/production-gate.sh`, `deploy.yml` environment | Hook log, deployment history |
+| G2 Protected changes | Edits to migrations, infra, guardrails | Change management | Approved change ticket in `CHANGE_TICKET` | `.agents/hooks/protected-paths.sh` | Hook log + OTel |
+| G3 Production release | Deploy/rollback to production | Named release manager | Release ticket in `RELEASE_APPROVAL` **and** reviewer on the `production` environment | `.agents/hooks/production-gate.sh`, `deploy.yml` environment | Hook log, deployment history |
 | G4 Merge | Any PR into main | Code owner | GitHub approval | Branch protection + CODEOWNERS | PR history |
-| G5 Agent configuration | CLAUDE.md, skills, hooks change | Owners + eval pass rate ≥ threshold | PR approval + green `agent-evals` | Required status check | CI history |
+| G5 Agent configuration | AGENTS.md, skills, hooks change | Owners + eval pass rate ≥ threshold | PR approval + green `agent-evals` | Template check + completed trusted-ref eval run reviewed by an owner | Exact-commit eval artifacts |
 
 ## Risk classes
 | Class | Examples | Extra approval |
@@ -25,5 +25,5 @@ Owner: `<head of engineering>` · Last reviewed: `<YYYY-MM-DD>`
 ## Rules for gates
 - A blocked action always prints the reason and the route to approval.
 - Gates apply to everyone, including the agent's non-interactive runs, which act under their own identity.
-- Non-negotiable gates live in managed settings (`managed-settings/`), not only in project settings.
+- Non-negotiable gates use CI, branch protection and protected deployment environments. Native managed policy may add controls; `managed-settings/` is a Claude-specific example.
 - Build-time hooks never ask a human (that would stall parallel sessions); approval prompts belong to the gates above.

@@ -23,7 +23,7 @@ permissions:
 jobs:
   claude:
     if: >-
-      vars.SDLC_ENABLED == 'true' && (
+      vars.SDLC_ENABLED == 'true' && vars.SDLC_CLAUDE_ACTION_ENABLED == 'true' && vars.SDLC_AGENT_ADAPTER == 'claude' && (
         (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude') &&
           contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
         (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude') &&

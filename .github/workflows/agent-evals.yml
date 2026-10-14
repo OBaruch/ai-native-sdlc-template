@@ -1,17 +1,26 @@
 name: Agent evals
 # Regression suite for the agent's configuration. Runs when anything that steers the agent
-# changes (CLAUDE.md, skills, hooks, subagents, commands, evals) and nightly.
+# changes (AGENTS.md, skills, hooks, roles, adapters, commands, evals) and nightly.
 # Make this a required status check so a pass-rate drop blocks the merge.
 
 on:
   pull_request:
     paths:
+      - "AGENTS.md"
       - "CLAUDE.md"
+      - ".agents/**"
+      - "scripts/**"
+      - ".github/actions/**"
+      - ".github/workflows/agent-evals.yml"
       - ".claude/**"
       - "evals/**"
   schedule:
     - cron: "30 3 * * *"
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Trusted ref approved by a maintainer for credentialed evaluation"
+        required: false
 
 permissions:
   contents: read
@@ -22,22 +31,29 @@ defaults:
 
 jobs:
   evals:
-    if: vars.SDLC_ENABLED == 'true'
+    if: vars.SDLC_ENABLED == 'true' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.ref || github.ref }}
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup-agent
         with:
-          node-version: "22"
-      - run: npm install -g @anthropic-ai/claude-code
+          adapter: ${{ vars.SDLC_AGENT_ADAPTER }}
+          version: ${{ vars.SDLC_AGENT_VERSION }}
       - name: Run eval suite
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SDLC_AGENT_ADAPTER: ${{ vars.SDLC_AGENT_ADAPTER }}
+          SDLC_AGENT_COMMAND: ${{ vars.SDLC_AGENT_COMMAND }}
+          SDLC_HARNESS_MODE_COMMANDS: ${{ vars.SDLC_HARNESS_MODE_COMMANDS }}
+          SDLC_AGENT_MODES: ${{ vars.SDLC_AGENT_MODES }}
+          SDLC_AGENT_TOKEN: ${{ vars.SDLC_AGENT_ADAPTER == 'command' && secrets.SDLC_AGENT_TOKEN || '' }}
+          ANTHROPIC_API_KEY: ${{ vars.SDLC_AGENT_ADAPTER == 'claude' && secrets.ANTHROPIC_API_KEY || '' }}
+          OPENAI_API_KEY: ${{ vars.SDLC_AGENT_ADAPTER == 'codex' && secrets.OPENAI_API_KEY || '' }}
           EVAL_PASS_THRESHOLD: ${{ vars.EVAL_PASS_THRESHOLD || '0.9' }}
-        run: make evals
+        run: bash evals/run.sh --require-enabled
       - uses: actions/upload-artifact@v4
         if: always()
         with:

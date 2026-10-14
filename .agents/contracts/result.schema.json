@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "is_error",
+    "output"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "adapter": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "enum": [
+        "success",
+        "error"
+      ]
+    },
+    "is_error": {
+      "type": "boolean"
+    },
+    "output": {
+      "type": "string"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "status": {
+          "const": "success"
+        },
+        "is_error": {
+          "const": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "status": {
+          "const": "error"
+        },
+        "is_error": {
+          "const": true
+        }
+      }
+    }
+  ]
+}

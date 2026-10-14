@@ -4,18 +4,26 @@
 *                           @your-org/engineering
 
 # Agent configuration steers every session: reviewed like code, by its owners.
-/CLAUDE.md                  @your-org/tech-leads
+/AGENTS.md                  @your-org/tech-leads
 /REVIEW.md                  @your-org/tech-leads
 /.claude/                   @your-org/platform-team
 /.claude/hooks/             @your-org/platform-team @your-org/security
 /managed-settings/          @your-org/platform-team @your-org/security
 
+# Portable runtime, instruction bridges and shared enforcement.
+/CLAUDE.md                   @your-org/tech-leads
+/.agents/                    @your-org/platform-team
+/.agents/hooks/              @your-org/platform-team @your-org/security
+/.agents/contracts/          @your-org/platform-team @your-org/security
+/docs/                       @your-org/tech-leads
+/llms.txt                    @your-org/tech-leads
+
 # Policy skills: the policy owner signs off on every change.
-/.claude/skills/security-policy/     @your-org/security
-/.claude/skills/secure-api-review/   @your-org/security
-/.claude/skills/compliance-policy/   @your-org/compliance
-/.claude/skills/brand-guidelines/    @your-org/brand
-/.claude/skills/ux-standards/        @your-org/ux
+/.agents/skills/security-policy/     @your-org/security
+/.agents/skills/secure-api-review/   @your-org/security
+/.agents/skills/compliance-policy/   @your-org/compliance
+/.agents/skills/brand-guidelines/    @your-org/brand
+/.agents/skills/ux-standards/        @your-org/ux
 
 # Artifact chain: the product owner accepts intents and specs.
 /intent/                    @your-org/product-owners
@@ -27,3 +35,9 @@
 /monitoring/                @your-org/sre
 /evals/                     @your-org/platform-team
 /governance/                @your-org/engineering-leadership
+
+# Runtime enforcement needs security ownership after the generic scripts rule.
+/scripts/policy.py           @your-org/platform-team @your-org/security
+/scripts/agent_run.py        @your-org/platform-team @your-org/security
+/scripts/verify.py           @your-org/platform-team @your-org/security
+/scripts/claude_hook.py      @your-org/platform-team @your-org/security

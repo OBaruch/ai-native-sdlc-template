@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   review:
-    if: vars.SDLC_ENABLED == 'true' && github.event.pull_request.draft == false
+    if: vars.SDLC_ENABLED == 'true' && vars.SDLC_CLAUDE_ACTION_ENABLED == 'true' && vars.SDLC_AGENT_ADAPTER == 'claude' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,14 +35,14 @@ jobs:
             PR NUMBER: ${{ github.event.pull_request.number }}
 
             Review this pull request strictly according to REVIEW.md at the repository root.
-            - Read CLAUDE.md first.
+            - Read AGENTS.md first.
             - Find the change's folder under intent/ (linked in the PR description or touched by the diff)
               and check the diff against its spec.md and plan.md.
-            - Apply the skills in .claude/skills/ that match the change.
+            - Apply the skills in .agents/skills/ that match the change.
             - Post each finding as an inline comment tagged with its pass and severity (Important / Nit).
             - Finish with one summary comment whose last line is exactly:
               <!-- review-tally: {"important": N, "nit": M} -->
-            - Also say if the change makes CLAUDE.md outdated.
+            - Also say if the change makes AGENTS.md outdated.
             Do not approve, request changes, or push commits.
           claude_args: >-
             --max-turns 40

@@ -1,0 +1,12 @@
+# AI-native SDLC template
+
+A harness-independent SDLC scaffold with shared instructions, policy skills, task procedures,
+review gates, portable agent execution and regression evaluations.
+
+- [Instructions](AGENTS.md): authoritative guidance for every agent.
+- [Adoption](docs/adoption.md): template vs fork, setup, credentials and first checks.
+- [Adopción en español](docs/adoption.es.md): instrucciones para personas y agentes.
+- [Agent contract](.agents/README.md): native and command adapters, permissions and hook events.
+- [Migration](docs/migration.md): move a customized Claude installation to the shared core.
+- [Review policy](REVIEW.md): human approval remains required.
+- [Approval gates](governance/approval-gates.md): organization-specific owners and controls.

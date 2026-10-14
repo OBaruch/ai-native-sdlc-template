@@ -1,0 +1,14 @@
+.git
+.venv
+node_modules
+**/__pycache__
+.env
+.env.*
+secrets
+.agents/logs
+.agents/fix-task
+.agents/active-change
+.agents/verification.json
+.claude/logs
+evals/.runs
+out

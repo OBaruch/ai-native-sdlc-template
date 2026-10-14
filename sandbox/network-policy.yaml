@@ -2,7 +2,7 @@
 # Standard NetworkPolicy works on IPs, not domain names: route all egress through an
 # allowlisting egress proxy (or use an FQDN-aware CNI such as Cilium) and allow only these
 # destinations:
-#   - the model endpoint: api.anthropic.com, or your Bedrock / Vertex AI / Foundry endpoint
+#   - only the selected model endpoint (OpenAI, Anthropic, your hosted/local provider, etc.)
 #   - your git host and package/artifact registry
 #   - the MCP servers for the target environment (never production credentials by default)
 apiVersion: networking.k8s.io/v1
@@ -13,7 +13,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/component: claude-agent
+      app.kubernetes.io/component: sdlc-agent
   policyTypes: [Ingress, Egress]
   ingress: []                       # nothing talks to the agent
   egress:

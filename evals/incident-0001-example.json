@@ -8,11 +8,21 @@
   "description": "TEMPLATE: regression eval for a production incident. Reproduces the conditions that caused it; stays in the suite permanently.",
   "base_ref": "HEAD",
   "prompt": "Add pagination to the claims list endpoint.",
-  "allowed_tools": "Read,Edit,Write,Grep,Glob,Bash(make test)",
-  "max_turns": 30,
   "checks": [
-    { "name": "tests pass", "run": "make test" },
-    { "name": "no unbounded query reintroduced", "run": "! grep -rEn 'SELECT \\* FROM claims[^;]*;' src/ | grep -v LIMIT" },
-    { "name": "agent finished without error", "result_field": "is_error", "equals": false }
-  ]
+    {
+      "name": "tests pass",
+      "run": "make test"
+    },
+    {
+      "name": "no unbounded query reintroduced",
+      "run": "! grep -rEn 'SELECT \\* FROM claims[^;]*;' src/ | grep -v LIMIT"
+    },
+    {
+      "name": "agent finished without error",
+      "result_field": "is_error",
+      "equals": false
+    }
+  ],
+  "mode": "workspace-write",
+  "timeout_seconds": 600
 }

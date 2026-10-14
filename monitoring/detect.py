@@ -161,7 +161,7 @@ def main(argv: list[str] | None = None) -> int:
             "detected_at": now,
             **result,
             "action": tier_cfg.get("action", "none"),
-            "allowed_tools": tier_cfg.get("allowed_tools"),
+            "mode": tier_cfg.get("mode", "read-only"),
             "routes": tier_cfg.get("routes", []),
         }
         findings.append(finding)

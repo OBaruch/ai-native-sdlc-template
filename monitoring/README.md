@@ -3,8 +3,8 @@
 ```
 metrics store ──► detect.py (deterministic) ──► tier
                                                  ├─ 1σ  log only
-                                                 ├─ 2σ  Claude diagnoses read-only ─► intent.md PR ─► triage
-                                                 └─ 3σ  Claude proposes: PR into review gate
+                                                 ├─ 2σ  the selected agent diagnoses read-only ─► intent.md PR ─► triage
+                                                 └─ 3σ  the selected agent proposes: PR into review gate
                                                         and/or a pre-approved runbook
 ```
 
@@ -27,3 +27,12 @@ metrics store ──► detect.py (deterministic) ──► tier
 ## Measure
 - Leading: time from breach (detect log / workflow run) to the intent PR.
 - Lagging: share of `maintain-loop` PRs that end in merged fixes; repeat incidents of the same class.
+
+The selected adapter comes from SDLC_AGENT_ADAPTER. Tier configuration uses portable `mode`
+(read-only by default), not native allowed-tool strings. Changing a mode requires policy review
+and an adapter/sandbox that enforces it. See `.agents/README.md` for boundary limits.
+
+Response runs use disposable clones and preserve the source checkout. Read-only mutations
+are rejected before publication. Runbook routes/modes come from version-controlled bands.yaml,
+not model output or finding-supplied permissions. Existing open triage PRs are skipped; pushes
+never force-overwrite another branch. Workspace-write proposals must pass make check.

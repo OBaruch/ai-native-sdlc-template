@@ -1,0 +1,25 @@
+name: Set up selected SDLC adapter
+description: Prepare shared tools and install only an explicitly selected harness version.
+inputs:
+  adapter:
+    required: true
+    description: claude, codex, or command
+  version:
+    required: false
+    description: Exact native CLI version; required for claude and codex
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - shell: bash
+      run: python3 -m pip install 'PyYAML==6.0.3'
+    - shell: bash
+      env:
+        SDLC_AGENT_ADAPTER: ${{ inputs.adapter }}
+        SDLC_AGENT_VERSION: ${{ inputs.version }}
+      run: python3 scripts/install_agent.py

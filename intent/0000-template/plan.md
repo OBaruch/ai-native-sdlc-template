@@ -8,7 +8,7 @@ date: <YYYY-MM-DD>
 
 # Plan: <title>
 
-<!-- Produced in Claude Code plan mode (/write-plan). Detailed enough that an engineer who never
+<!-- Produced in the harness planning workflow (/write-plan). Detailed enough that an engineer who never
 saw the planning conversation could implement it. If the implementation departs from it,
 update this file in the same commit. -->
 
@@ -26,7 +26,7 @@ and the alternatives considered and rejected, with the reason. -->
 -
 
 ## Proof
-<!-- Pass/fail targets Claude can check without asking, e.g. "tests in X pass",
+<!-- Pass/fail targets the agent can check without asking, e.g. "tests in X pass",
 "endpoint returns 200 with field Y", "screenshot matches the approved mock". -->
 -
 

@@ -1,7 +1,7 @@
 name: Metrics monitor
 # The maintain loop. A deterministic detector checks each metric in monitoring/bands.yaml;
-# at 2σ+ Claude diagnoses (read-only) and the finding comes back as an intent.md PR.
-# Claude acts only through PRs (review gate) or runbooks pre-approved in bands.yaml.
+# at 2σ+ the selected agent diagnoses (read-only) and the finding comes back as an intent.md PR.
+# the selected agent acts only through PRs (review gate) or runbooks pre-approved in bands.yaml.
 
 on:
   schedule:
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pyyaml
+      - run: pip install 'PyYAML==6.0.3'
 
       - name: Detect (deterministic)
         id: detect
@@ -47,12 +47,23 @@ jobs:
           name: findings
           path: findings.json
 
-      - name: Respond (Claude, gated)
+      - name: Set up response adapter
+        if: steps.detect.outputs.actionable == 'true'
+        uses: ./.github/actions/setup-agent
+        with:
+          adapter: ${{ vars.SDLC_AGENT_ADAPTER }}
+          version: ${{ vars.SDLC_AGENT_VERSION }}
+      - name: Respond (selected adapter, gated)
         if: steps.detect.outputs.actionable == 'true'
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SDLC_AGENT_ADAPTER: ${{ vars.SDLC_AGENT_ADAPTER }}
+          SDLC_AGENT_COMMAND: ${{ vars.SDLC_AGENT_COMMAND }}
+          SDLC_HARNESS_MODE_COMMANDS: ${{ vars.SDLC_HARNESS_MODE_COMMANDS }}
+          SDLC_AGENT_MODES: ${{ vars.SDLC_AGENT_MODES }}
+          SDLC_AGENT_TOKEN: ${{ vars.SDLC_AGENT_ADAPTER == 'command' && secrets.SDLC_AGENT_TOKEN || '' }}
+          ANTHROPIC_API_KEY: ${{ vars.SDLC_AGENT_ADAPTER == 'claude' && secrets.ANTHROPIC_API_KEY || '' }}
+          OPENAI_API_KEY: ${{ vars.SDLC_AGENT_ADAPTER == 'codex' && secrets.OPENAI_API_KEY || '' }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          npm install -g @anthropic-ai/claude-code
-          gh label create maintain-loop --color BFD4F2 --description "Opened by the maintain loop" --force
+          gh label create maintain-loop --color BFD4F2 --description 'Opened by the maintain loop' --force
           bash monitoring/respond.sh findings.json

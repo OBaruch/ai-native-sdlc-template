@@ -22,12 +22,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install pyyaml
-      - name: Validate scaffold
-        run: make validate-template
-      - name: Hook behavior tests
-        run: make hook-test
-      - name: Detector unit tests
-        run: make monitor-test
-      - name: Shellcheck (errors only)
-        run: git ls-files '*.sh' | xargs shellcheck -S error -x
+      - run: pip install 'PyYAML==6.0.3'
+      - name: Scaffold, adapter contracts, hook regressions and detector tests
+        run: make template-check
+      - name: Validate GitHub Actions workflows
+        run: docker run --rm --user "$(id -u):$(id -g)" --volume "$PWD:/repo:ro" --workdir /repo rhysd/actionlint:1.7.9 -color

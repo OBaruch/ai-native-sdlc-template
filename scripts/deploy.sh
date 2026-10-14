@@ -4,7 +4,7 @@
 #
 # Production requires RELEASE_APPROVAL (a release ticket). In CI the "production" GitHub
 # environment additionally requires a named reviewer. Defense in depth: the local
-# production-gate hook enforces the same rule for Claude Code sessions.
+# production-gate hook enforces the same rule for harnesses with a policy-event adapter.
 set -euo pipefail
 
 ENV_NAME="${1:?usage: deploy.sh <env> [<version>|--health-only]}"
