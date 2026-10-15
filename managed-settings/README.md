@@ -1,5 +1,8 @@
 # managed-settings/
 
+**Claude Code adapter example**, not portable policy enforcement.
+See [the shared contract](../.agents/README.md) for other harnesses.
+
 Organization-wide Claude Code policy for regulated environments. This folder is only the
 **reviewed source**: the file takes effect when the platform/IT team deploys it through MDM or
 the Claude admin console (server-managed settings). Engineers cannot override managed settings.

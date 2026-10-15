@@ -24,7 +24,7 @@ Apply every rule below to each endpoint you add or change.
 7. **Rate limiting**: public endpoints declare a limit in `<where limits are configured>`.
 
 ## Check
-Run `bash .claude/skills/secure-api-review/scripts/check-endpoints.sh` and include its
+Run `bash .agents/skills/secure-api-review/scripts/check-endpoints.sh` and include its
 output in your summary. If it reports a finding you believe is wrong, say so explicitly
 instead of silencing it.
 

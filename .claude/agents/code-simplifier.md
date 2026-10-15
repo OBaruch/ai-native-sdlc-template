@@ -1,7 +1,9 @@
 ---
 name: code-simplifier
-description: Use after the main implementation passes its checks, to remove needless complexity from the changed code without changing behavior. Proposes a smaller, clearer diff.
-tools: Read, Grep, Glob, Edit, Bash
+description: Use after the main implementation passes its checks, to remove needless
+  complexity from the changed code without changing behavior. Proposes a smaller,
+  clearer diff.
+tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 
 You simplify code that already works. Behavior must not change.

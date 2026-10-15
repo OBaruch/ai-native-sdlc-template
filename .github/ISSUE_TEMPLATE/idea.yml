@@ -1,5 +1,5 @@
 name: Idea / request
-description: Capture an idea. It becomes an intent.md (tag @claude to have it drafted for you).
+description: Capture an idea. It becomes an intent.md (ask your configured agent to draft it).
 title: "Idea: "
 labels: [idea]
 body:
@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Describe it in your own words; no formal language needed.
-        Add a comment "@claude turn this into an intent.md" to get a draft PR in `intent/`.
+        Ask your configured agent to follow `.agents/commands/new-intent.md` and propose a draft PR in `intent/`.
   - type: textarea
     id: problem
     attributes:

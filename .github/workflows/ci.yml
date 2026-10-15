@@ -1,6 +1,6 @@
 name: CI
-# Lint, test and build with the same single-command targets Claude uses locally.
-# On failure, Claude triages the log read-only and posts a short summary (judgment step).
+# Lint, test and build with the same single-command targets every agent uses locally.
+# On failure, the selected agent triages the log read-only and posts a short summary (judgment step).
 # Enable with the repository variable SDLC_ENABLED=true once the Makefile is configured.
 
 on:
@@ -10,7 +10,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -35,20 +34,27 @@ jobs:
       - name: Build
         run: make build 2>&1 | tee -a out/build.log
 
+      # Triage only trusted main-branch code; never execute PR scripts with provider secrets.
+      - name: Set up triage adapter
+        if: failure() && github.event_name == 'push' && vars.SDLC_AGENT_ADAPTER != ''
+        uses: ./.github/actions/setup-agent
+        with:
+          adapter: ${{ vars.SDLC_AGENT_ADAPTER }}
+          version: ${{ vars.SDLC_AGENT_VERSION }}
       - name: Triage failed build (read-only)
-        if: failure() && env.ANTHROPIC_API_KEY != ''
+        if: failure() && github.event_name == 'push' && vars.SDLC_AGENT_ADAPTER != ''
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SDLC_AGENT_ADAPTER: ${{ vars.SDLC_AGENT_ADAPTER }}
+          SDLC_AGENT_COMMAND: ${{ vars.SDLC_AGENT_COMMAND }}
+          SDLC_HARNESS_MODE_COMMANDS: ${{ vars.SDLC_HARNESS_MODE_COMMANDS }}
+          SDLC_AGENT_MODES: ${{ vars.SDLC_AGENT_MODES }}
+          SDLC_AGENT_TOKEN: ${{ vars.SDLC_AGENT_ADAPTER == 'command' && secrets.SDLC_AGENT_TOKEN || '' }}
+          ANTHROPIC_API_KEY: ${{ vars.SDLC_AGENT_ADAPTER == 'claude' && secrets.ANTHROPIC_API_KEY || '' }}
+          OPENAI_API_KEY: ${{ vars.SDLC_AGENT_ADAPTER == 'codex' && secrets.OPENAI_API_KEY || '' }}
         run: |
-          npm install -g @anthropic-ai/claude-code
-          claude -p "The CI log is in out/build.log. Find the most likely cause of the failure, \
-          say whether it looks flaky or like a real regression, and point to the file and line if you can. \
-          Answer in at most five lines of Markdown." \
-            --allowedTools "Read,Grep,Glob" --max-turns 15 > triage.md
-          { echo "### Build triage (Claude)"; cat triage.md; } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Post triage on the PR
-        if: failure() && github.event_name == 'pull_request' && hashFiles('triage.md') != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh pr comment ${{ github.event.pull_request.number }} --body-file triage.md
+          cat > out/triage-prompt.md <<'PROMPT'
+          Read out/build.log. Identify the most likely failure, whether it is flaky or a regression,
+          and cite files/lines where possible. Output at most five lines of Markdown. Do not modify files.
+          PROMPT
+          python3 scripts/agent_run.py --prompt-file out/triage-prompt.md --mode read-only --output out/triage.json --text > triage.md
+          { echo '### Build triage'; cat triage.md; } >> "$GITHUB_STEP_SUMMARY"

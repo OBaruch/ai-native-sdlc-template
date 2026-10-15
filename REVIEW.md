@@ -1,8 +1,8 @@
 # Review policy
 
 <!--
-TEMPLATE — owned by the tech lead. Read by the Claude review workflow on every PR
-(.github/workflows/claude-code-review.yml) and by human reviewers.
+TEMPLATE — owned by the tech lead. Read by the the agent review workflow on every PR
+(.github/workflows/agent-review.yml) and by human reviewers.
 Tune monthly: rate the findings, adjust the nit cap, extend "Out of scope".
 -->
 
@@ -16,7 +16,7 @@ Review every PR in the passes below and tag each finding with its pass name.
 3. **Conformance** — does the diff do what `intent/<change>/spec.md` asks and follow `plan.md`? Flag files changed that the plan does not mention, and plan steps with no matching change. Check it against our design principles:
    - `<principle 1, e.g. domain logic never imports from adapters>`
    - `<principle 2>`
-4. **Guardrails** — the change must not weaken tests, hooks, CI checks, `CLAUDE.md` or skills without saying why in the PR description. Flag it when a change makes `CLAUDE.md` outdated.
+4. **Guardrails** — the change must not weaken tests, hooks, CI checks, `AGENTS.md` or skills without saying why in the PR description. Flag it when a change makes `AGENTS.md` outdated.
 
 ## Severity
 - **Important** — would break behavior, lose or leak data, or breach a written policy. Must be fixed or explicitly accepted by a code owner.
@@ -32,4 +32,4 @@ Review every PR in the passes below and tag each finding with its pass name.
 - `<other paths or concerns to skip>`
 
 ## Human approval
-Findings inform, they do not approve. Merging requires a code owner approval (`.github/CODEOWNERS`) through branch protection. Claude never approves its own PRs.
+Findings inform, they do not approve. Merging requires a code owner approval (`.github/CODEOWNERS`) through branch protection. the agent never approves its own PRs.

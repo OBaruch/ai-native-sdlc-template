@@ -3,7 +3,7 @@
 #   usage: evals/check.sh <eval.json> <result.json> [workdir]
 # Each check in the eval is either:
 #   { "name": ..., "run": "<shell command>" }                 -> passes when it exits 0 (run in workdir)
-#   { "name": ..., "result_field": "<key>", "equals": <v> }  -> compares a field of claude's JSON result
+#   { "name": ..., "result_field": "<key>", "equals": <v> }  -> compares a field of the normalized JSON result
 # Exit 0 = every check passed.
 set -uo pipefail
 

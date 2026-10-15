@@ -87,18 +87,18 @@ def check_shell() -> None:
             errors.append(f"{rel(p)}: CRLF line endings (bash on Linux will fail)")
 
 
-def check_claude_dir() -> None:
+def check_agent_config() -> None:
     for p in files("SKILL.md"):
         fm = frontmatter(p)
         if not fm or not fm.get("name") or not fm.get("description"):
             errors.append(f"{rel(p)}: needs frontmatter with name and description")
         elif fm["name"] != p.parent.name:
             errors.append(f"{rel(p)}: name '{fm['name']}' must match folder '{p.parent.name}'")
-    for p in (ROOT / ".claude" / "agents").glob("*.md"):
+    for p in (ROOT / ".agents" / "roles").glob("*.md"):
         fm = frontmatter(p)
         if not fm or not fm.get("name") or not fm.get("description"):
             errors.append(f"{rel(p)}: agent needs frontmatter with name and description")
-    for p in (ROOT / ".claude" / "commands").glob("*.md"):
+    for p in (ROOT / ".agents" / "commands").glob("*.md"):
         fm = frontmatter(p)
         if not fm or not fm.get("description"):
             errors.append(f"{rel(p)}: command needs frontmatter with description")
@@ -112,6 +112,12 @@ def check_claude_dir() -> None:
                     for ref in re.findall(r"\$CLAUDE_PROJECT_DIR/([^\"' ]+)", hook.get("command", "")):
                         if not (ROOT / ref).exists():
                             errors.append(f".claude/settings.json: {event} hook points to missing {ref}")
+    for required in ("AGENTS.md", ".agents/README.md", "scripts/agent_run.py", "scripts/policy.py"):
+        if not (ROOT / required).is_file():
+            errors.append(f"missing portable entry point: {required}")
+    result = subprocess.run([sys.executable, str(ROOT / "scripts/sync_adapters.py"), "--check"], capture_output=True, text=True)
+    if result.returncode:
+        errors.append(result.stderr.strip() or "generated adapter files are stale")
 
 
 def check_evals() -> None:
@@ -170,7 +176,7 @@ def check_intent_template() -> None:
 
 
 def main() -> int:
-    for check in (check_json, check_yaml, check_shell, check_claude_dir, check_evals,
+    for check in (check_json, check_yaml, check_shell, check_agent_config, check_evals,
                   check_bands, check_intent_template):
         check()
     for w in warnings:

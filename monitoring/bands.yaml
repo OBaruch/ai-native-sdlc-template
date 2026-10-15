@@ -1,7 +1,7 @@
 # Control bands and response tiers for the maintain loop.
 #
 # Detection is deterministic (monitoring/detect.py, unit-tested, no model involved).
-# Claude is invoked only at 2σ and above, and at 3σ may act only by opening a pull request
+# The selected agent is invoked only at 2σ and above, and at 3σ may act only by opening a pull request
 # (which goes through the normal review gate) or by triggering a runbook listed below.
 # Dismissed findings are a signal to tune these bands.
 version: 1
@@ -31,8 +31,8 @@ metrics:
       command: python3 monitoring/sources/ci_failure_rate.py --days 45 --workflow CI
     tiers:
       1sigma: { action: log }
-      2sigma: { action: diagnose, allowed_tools: "Read,Grep,Glob,Bash(gh run list:*),Bash(gh run view:*)" }
-      3sigma: { action: propose, allowed_tools: "Read,Grep,Glob,Edit,Bash(gh run view:*),Bash(make test)",
+      2sigma: { action: diagnose, mode: read-only }
+      3sigma: { action: propose, mode: read-only,
                 routes: [pull_request, "runbook:quarantine-flaky-test"] }
 
   - name: post_deploy_5xx_rate
@@ -45,8 +45,8 @@ metrics:
         --query 'sum(rate(http_requests_total{code=~"5.."}[1h])) / sum(rate(http_requests_total[1h]))'
     tiers:
       1sigma: { action: log }
-      2sigma: { action: diagnose, allowed_tools: "Read,Grep,Glob" }
-      3sigma: { action: propose, allowed_tools: "Read,Grep,Glob",
+      2sigma: { action: diagnose, mode: read-only }
+      3sigma: { action: propose, mode: read-only,
                 routes: ["runbook:rollback-deploy"] }
 
   - name: pr_cycle_time_hours
@@ -58,4 +58,4 @@ metrics:
     tiers:
       1sigma: { action: log }
       2sigma: { action: log }
-      3sigma: { action: report, allowed_tools: "Read,Grep,Glob,Bash(gh pr list:*),Bash(gh pr view:*)" }
+      3sigma: { action: report, mode: read-only }

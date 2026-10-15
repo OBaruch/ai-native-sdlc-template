@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "phase",
+    "operation"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "phase": {
+      "enum": [
+        "before",
+        "after",
+        "finish"
+      ]
+    },
+    "operation": {
+      "type": "object",
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "shell",
+            "read",
+            "write",
+            "none"
+          ]
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "content": {
+          "type": "string"
+        },
+        "new_string": {
+          "type": "string"
+        },
+        "edits": {
+          "type": [
+            "string",
+            "array"
+          ]
+        },
+        "new_source": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "phase": {
+          "enum": [
+            "finish"
+          ]
+        },
+        "operation": {
+          "required": [],
+          "properties": {
+            "kind": {
+              "enum": [
+                "none"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "phase": {
+          "enum": [
+            "before",
+            "after"
+          ]
+        },
+        "operation": {
+          "required": [
+            "command"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "shell"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "phase": {
+          "enum": [
+            "before",
+            "after"
+          ]
+        },
+        "operation": {
+          "required": [
+            "path"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "read",
+                "write"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -15,9 +15,9 @@ intent/NNNN-short-slug/
 
 | Artifact | Written by | Accepted by | Acceptance triggers |
 |----------|-----------|-------------|---------------------|
-| `intent.md` | Originator with Claude (`/new-intent`), or the monitoring loop | Product owner merges the PR (closing it = rejected) | `intent-to-spec` workflow opens a PR with `spec.md` |
-| `spec.md` | Claude (`/write-spec` or the workflow) | Product owner (+ tech lead if high risk) | Plan mode (`/write-plan`) |
-| `plan.md` | Claude in plan mode, iterated with the engineer | Engineer (tech lead/architect if high risk) | Implementation, then PR review against spec + plan |
+| `intent.md` | Originator with the agent (`/new-intent`), or the monitoring loop | Product owner merges the PR (closing it = rejected) | `intent-to-spec` workflow opens a PR with `spec.md` |
+| `spec.md` | the agent (`/write-spec` or the workflow) | Product owner (+ tech lead if high risk) | Plan mode (`/write-plan`) |
+| `plan.md` | the agent in plan mode, iterated with the engineer | Engineer (tech lead/architect if high risk) | Implementation, then PR review against spec + plan |
 
 Git history is the audit trail: author, timestamps and approvals for each file.
 

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "prompt",
+    "workspace",
+    "mode",
+    "timeout_seconds",
+    "instructions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "prompt": {
+      "type": "string"
+    },
+    "workspace": {
+      "type": "string"
+    },
+    "mode": {
+      "enum": [
+        "read-only",
+        "workspace-write"
+      ]
+    },
+    "timeout_seconds": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "instructions": {
+      "type": "object",
+      "required": [
+        "entrypoint",
+        "skills",
+        "commands",
+        "roles"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "entrypoint": {
+          "type": "string"
+        },
+        "skills": {
+          "type": "string"
+        },
+        "commands": {
+          "type": "string"
+        },
+        "roles": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

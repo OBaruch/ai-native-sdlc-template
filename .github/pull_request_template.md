@@ -18,7 +18,7 @@ make build:
 ## Plan conformance
 - [ ] The diff matches `plan.md`, or `plan.md` was updated in this PR
 - [ ] No tests, hooks, CI checks or policy skills weakened (or explained below)
-- [ ] `CLAUDE.md` updated if this PR corrected a repeated agent mistake
+- [ ] `AGENTS.md` updated if this PR corrected a repeated agent mistake
 
 ## Notes for the reviewer
 <!-- Where to focus: intent and risk. Mechanical checks are already attached above. -->
